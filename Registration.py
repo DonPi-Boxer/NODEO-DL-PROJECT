@@ -6,6 +6,9 @@ from Loss import *
 from NeuralODE import *
 from Utils import *
 
+## Image registration
+## Main file to run, calls on other files
+
 def main(config):
     device = torch.device(config.device)
     fixed = load_nii(config.fixed)
@@ -102,7 +105,7 @@ def evaluation(config, device, df, df_with_grid):
     print('Total of neg Jet: ', mean_neg_J)
     print('Ratio of neg Jet: ', ratio_neg_J)
     ### Calculate Dice
-    label = [2, 3, 4, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18
+    label = [2, 3, 4, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18]
     fixed_seg = load_nii(config.fixed_seg)
     moving_seg = load_nii(config.moving_seg)
     ST_seg = SpatialTransformer(fixed_seg.shape, mode='nearest').to(device)

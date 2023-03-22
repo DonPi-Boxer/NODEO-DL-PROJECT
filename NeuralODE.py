@@ -3,7 +3,9 @@ import torch
 from torch import Tensor
 from torch import nn
 
-##LEAVE THIS
+## how gradient is preserved and calculated
+## most difficult (to understand?)
+## no changes needed
 
 def RK(z0, n_steps, f, h):
     '''

@@ -5,7 +5,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-##ALSO LEAVE THIS
+##ALSO LEAVE THIS: klopt??
+## Defines helper functions that are used in other files
 
 class SpatialTransformer(nn.Module):
     """

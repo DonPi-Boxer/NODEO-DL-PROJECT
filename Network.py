@@ -8,7 +8,11 @@ from torch import nn
 
 from NeuralODE import ODEF
 
-#Also rewrite into 2D....
+## to do: change gaussian kernal into avg kernal. staat all defined als class. better for workload to only 
+## work with avg kernal
+## to do: change to 2d, for fig. 4
+
+## Also rewrite into 2D....
 class GaussianKernel(torch.nn.Module):
     def __init__(self, win=11, nsig=0.1):
         super(GaussianKernel, self).__init__()
@@ -107,7 +111,8 @@ class BrainNet(ODEF):
             math.ceil(img_sz[0] / pow(2, self.ds)) * math.ceil(img_sz[1] / pow(2, self.ds)) * math.ceil(
                 img_sz[2] / pow(2, self.ds)))
         
-        ##864 might need to be (manually, hard-coded) changed. Also possible to calculate this in a smart way.
+        ## 864 might need to be (manually, hard-coded) changed. Also possible to calculate this in a smart way. 
+        ## Not usual to define so explicitly
         self.lin1 = nn.Linear(864, self.bs, bias=bias)
         
         
@@ -139,6 +144,7 @@ class BrainNet(ODEF):
         x = self.lin2(x)
 
         ## Change 1,3 --> 1,2
+        ## use debugging tool (?)
         x = x.view(1, 3, int(math.ceil(imgx / pow(2, self.ds))), int(math.ceil(imgy / pow(2, self.ds))),
                    int(math.ceil(imgz / pow(2, self.ds))))
         for _ in range(self.ds):

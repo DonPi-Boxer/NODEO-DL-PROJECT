@@ -1,6 +1,8 @@
 import torch
 import torch.nn.functional as F
 
+## to do: rewrite jacobian, change x,y,z into x,y (for fig. 4)
+
 class NCC(torch.nn.Module):
     """
     NCC with cumulative sum implementation for acceleration. local (over window) normalized cross correlation.
@@ -25,7 +27,7 @@ class NCC(torch.nn.Module):
 
         x, y, z = I.shape[2:]
 
-        ##Needs to be rewritten into 2D; findabla on github (voxelmorph)
+        ##Needs to be rewritten into 2D; find on github (voxelmorph) and/or maybe just as ADIP
         
         # Use subtraction to calculate the window sum
         I_win = I_cs_xyz[:, :, win_size:, win_size:, win_size:] \

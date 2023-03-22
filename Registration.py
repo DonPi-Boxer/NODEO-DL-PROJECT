@@ -188,7 +188,8 @@ if __name__ == '__main__':
                         help="debug mode")
     # Device
     parser.add_argument("--device", type=str,
-                        dest="device", default='cpu')
+                        dest="device", default='cuda:0',
+                        help="gpu: cuda:0; cpu: cpu")
 
     config = parser.parse_args()
     if not os.path.isdir(config.savepath):

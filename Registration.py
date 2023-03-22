@@ -6,9 +6,6 @@ from Loss import *
 from NeuralODE import *
 from Utils import *
 
-## Image registration
-## Main file to run, calls on other files
-
 def main(config):
     device = torch.device(config.device)
     fixed = load_nii(config.fixed)
@@ -191,8 +188,7 @@ if __name__ == '__main__':
                         help="debug mode")
     # Device
     parser.add_argument("--device", type=str,
-                        dest="device", default='cuda:0',
-                        help="gpu: cuda:0; cpu: cpu")
+                        dest="device", default='cpu')
 
     config = parser.parse_args()
     if not os.path.isdir(config.savepath):

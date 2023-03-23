@@ -1,6 +1,7 @@
 import torch
 import torch.nn.functional as F
 
+## test test
 ## to do: rewrite jacobian, change x,y,z into x,y (for fig. 4)
 
 class NCC(torch.nn.Module):

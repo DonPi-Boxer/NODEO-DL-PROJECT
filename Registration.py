@@ -3,14 +3,17 @@ import os
 import time
 from Network import BrainNet
 from Loss import *
+'import *: means import everything'
 from NeuralODE import *
 from Utils import *
 
+'"main" defines what to do with config'
+'input is config, this is the configuration specification defined at bottom of this script'
 def main(config):
-    device = torch.device(config.device)
-    fixed = load_nii(config.fixed)
-    moving = load_nii(config.moving)
-    assert fixed.shape == moving.shape  # two images to be registered must in the same size
+    device = torch.device(config.device)  ## config.device: now set to 'CPU'
+    fixed = load_nii(config.fixed)        ## load the fixed image(s)
+    moving = load_nii(config.moving)      ## and moving image(s)
+    assert fixed.shape == moving.shape    # two images to be registered must in the same size
     t = time.time()
     df, df_with_grid, warped_moving = registration(config, device, moving, fixed)
     runtime = time.time() - t
@@ -21,7 +24,7 @@ def main(config):
     save_result(config, df, warped_moving)
     print('---Results Saved---')
 
-
+'"registration defines the process of going through the neural network'
 def registration(config, device, moving, fixed):
     '''
     Registration moving to fixed.
@@ -39,6 +42,8 @@ def registration(config, device, moving, fixed):
     moving = moving.unsqueeze(0).unsqueeze(0)
     fixed = fixed.unsqueeze(0).unsqueeze(0)
 
+    'define the network by using the class "BrainNet" from the "network" script'
+    'BrainNet with specific inputs img_sz etc. from "config"'
     Network = BrainNet(img_sz=im_shape,
                        smoothing_kernel=config.smoothing_kernel,
                        smoothing_win=config.smoothing_win,
@@ -47,6 +52,7 @@ def registration(config, device, moving, fixed):
                        bs=config.bs
                        ).to(device)
 
+    'use class "NeuralODE" from script "NeuralODE"'
     ode_train = NeuralODE(Network, config.optimizer, config.STEP_SIZE).to(device)
 
     # training loop
@@ -90,7 +96,7 @@ def registration(config, device, moving, fixed):
                 best_warped_moving = warped_moving.detach().clone()
     return best_df, best_df_with_grid, best_warped_moving
 
-
+'utensil for "main"'
 def evaluation(config, device, df, df_with_grid):
     ### Calculate Neg Jac Ratio
     neg_Jet = -1.0 * JacboianDet(df_with_grid)
@@ -113,27 +119,32 @@ def evaluation(config, device, df, df_with_grid):
     dice_move2fix = dice(warped_seg.unsqueeze(0).unsqueeze(0).detach().cpu().numpy(), fixed_seg, label)
     print('Avg. dice on %d structures: ' % len(label), np.mean(dice_move2fix[0]))
 
+'utensil for "main"'
 def save_result(config, df, warped_moving):
     save_nii(df.permute(2,3,4,0,1).detach().cpu().numpy(), '%s/df.nii.gz' % (config.savepath))
     save_nii(warped_moving.detach().cpu().numpy(), '%s/warped.nii.gz' % (config.savepath))
 
+'configuration: de definition of what to use'
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # File path
     parser.add_argument("--savepath", type=str,
                         dest="savepath", default='./result',
                         help="path for saving results")
+    ## changed defaults to refer to 2d data
+    ## fixed and moving img, raw
     parser.add_argument("--fixed", type=str,
-                        dest="fixed", default='./data/OAS1_0001_MR1/brain.nii.gz',
+                        dest="fixed", default='./2Ddata/OASIS_OAS1_0001_MR1/slice_orig.nii.gz',
                         help="fixed image data path")
     parser.add_argument("--moving", type=str,
-                        dest="moving", default='./data/OAS1_0002_MR1/brain.nii.gz',
+                        dest="moving", default='./2Ddata/OASIS_OAS1_0002_MR1/slice_orig.nii.gz',
                         help="moving image data path")
+    ## fixed and moving img, segmented
     parser.add_argument("--fixed_seg", type=str,
-                        dest="fixed_seg", default='./data/OAS1_0001_MR1/brain_aseg.nii.gz',
+                        dest="fixed_seg", default='./2Ddata/OASIS_OAS1_0001_MR1/slice_seg24.nii.gz',
                         help="fixed image segmentation data path")
     parser.add_argument("--moving_seg", type=str,
-                        dest="moving_seg", default='./data/OAS1_0002_MR1/brain_aseg.nii.gz',
+                        dest="moving_seg", default='./2Ddata/OASIS_OAS1_0002_MR1/slice_seg24.nii.gz',
                         help="moving image segmentation data path")
     # Model configuration
     parser.add_argument("--ds", type=int,
@@ -142,6 +153,7 @@ if __name__ == '__main__':
     parser.add_argument("--bs", type=int,
                         dest="bs", default=16,
                         help="bottleneck size.")
+    ## default is AK, don't use GK
     parser.add_argument("--smoothing_kernel", type=str,
                         dest="smoothing_kernel", default='AK',
                         help="AK: Averaging kernel; GK: Gaussian Kernel")

@@ -8,11 +8,10 @@ from torch import nn
 
 from NeuralODE import ODEF
 
-## to do: change gaussian kernal into avg kernal. staat all defined als class. better for workload to only 
-## work with avg kernal
 ## to do: change to 2d, for fig. 4
 
-## Also rewrite into 2D....
+## We don't use this GK, only AK (better for workload)
+## This is ensured by default = AK in 'Registration' file
 class GaussianKernel(torch.nn.Module):
     def __init__(self, win=11, nsig=0.1):
         super(GaussianKernel, self).__init__()
@@ -90,7 +89,6 @@ class AveragingKernel(torch.nn.Module):
         return self.window_averaging(v)
 
 
-
 class BrainNet(ODEF):
     def __init__(self, img_sz, smoothing_kernel, smoothing_win, smoothing_pass, ds, bs):
         super(BrainNet, self).__init__()
@@ -114,12 +112,9 @@ class BrainNet(ODEF):
         ## 864 might need to be (manually, hard-coded) changed. Also possible to calculate this in a smart way. 
         ## Not usual to define so explicitly
         self.lin1 = nn.Linear(864, self.bs, bias=bias)
-        
-        
+
         self.lin2 = nn.Linear(self.bs, self.bottleneck_sz * 3, bias=bias)
         self.relu = nn.ReLU()
-
-        ##Gaussian kernel can be ignored; just use veraging kernel
 
         # Create smoothing kernels
         if self.smoothing_kernel == 'AK':
@@ -127,13 +122,13 @@ class BrainNet(ODEF):
         else:
             self.sk = GaussianKernel(win=smoothing_win, nsig=0.1)
 
+    ## changed to 2d, by removing z and 3-->2 and tri--> bilinear
     def forward(self, x):
 
         imgx = self.img_sz[0]
         imgy = self.img_sz[1]
-        imgz = self.img_sz[2]
         # x = self.relu(self.enc_conv1(x))
-        x = F.interpolate(x, scale_factor=0.5, mode='trilinear')  # Optional to downsample the image
+        ##x = F.interpolate(x, scale_factor=0.5, mode='bilinear')  # Optional to downsample the image
         x = self.relu(self.enc_conv2(x))
         x = self.relu(self.enc_conv3(x))
         x = self.relu(self.enc_conv4(x))
@@ -142,13 +137,10 @@ class BrainNet(ODEF):
         x = x.view(-1)        
         x = self.relu(self.lin1(x))
         x = self.lin2(x)
-
-        ## Change 1,3 --> 1,2
         ## use debugging tool (?)
-        x = x.view(1, 3, int(math.ceil(imgx / pow(2, self.ds))), int(math.ceil(imgy / pow(2, self.ds))),
-                   int(math.ceil(imgz / pow(2, self.ds))))
+        x = x.view(1, 2, int(math.ceil(imgx / pow(2, self.ds))), int(math.ceil(imgy / pow(2, self.ds))))
         for _ in range(self.ds):
-            x = F.upsample(x, scale_factor=2, mode='trilinear')
+            x = F.upsample(x, scale_factor=2, mode='bilinear')
         # Apply Gaussian/Averaging smoothing
         for _ in range(self.smoothing_pass):
             if self.smoothing_kernel == 'AK':
@@ -156,7 +148,6 @@ class BrainNet(ODEF):
             else:
                 x_x = self.sk(x[:, 0, :, :, :].unsqueeze(1))
                 x_y = self.sk(x[:, 1, :, :, :].unsqueeze(1))
-                x_z = self.sk(x[:, 2, :, :, :].unsqueeze(1))
-                x = torch.cat([x_x, x_y, x_z], 1)
+                x = torch.cat([x_x, x_y], 1)
         return x
 

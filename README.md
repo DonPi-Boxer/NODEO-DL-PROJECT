@@ -1,7 +1,15 @@
 # NODEO-DIR
 [CVPR 2022] NODEO: A Neural Ordinary Differential Equation Based Optimization Framework for Deformable Image Registration
+
 # Usage
 Run Registration.py
+## will call on 
+## 1) Loss
+## 2) Network
+## 3) Neural ODE
+## 4) Utils 
+## the data
+
 
 # Label Index 
 OASIS: [2, 3, 4, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 24, 28, 41, 42, 43, 46, 47, 49, 50, 51, 52, 53, 54, 60]

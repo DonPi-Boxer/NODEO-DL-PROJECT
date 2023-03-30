@@ -38,12 +38,12 @@ numruns = 0
 mean_avg_dice = []
 for moving_set_name,moving_mri,moving_seg in zip(moving_set_name,moving_file_paths_mri,moving_file_paths_seg):
     for fixed_set_name,fixed_mri,fixed_seg in zip(fixed_set_name,fixed_files_paths_mri,fixed_file_paths_seg):
-        
+
             if moving_mri != fixed_mri:
                 numruns = numruns +1
                 savepath_run = './result/' + moving_set_name +'/' + fixed_set_name
             #print(savepath_run)
-                avg_dice =  subprocess.run(['python', 'Registration.py', '--moving', moving_mri, '--fixed', fixed_mri, '--moving_seg', moving_seg, '--fixed_seg', fixed_seg, '--savepath', savepath_run])
+                avg_dice =  subprocess.check_output(['python', 'Registration.py', '--moving', moving_mri, '--fixed', fixed_mri, '--moving_seg', moving_seg, '--fixed_seg', fixed_seg, '--savepath', savepath_run],shell=True)
                 mean_avg_dice.append(avg_dice)
                 print(avg_dice)
                 print("Mean average dice after " , numruns , " runs is " , np.mean(mean_avg_dice))

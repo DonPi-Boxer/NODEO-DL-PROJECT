@@ -181,7 +181,6 @@ class NeuralODE(nn.Module):
 
     def forward(self, z0, t=Tensor([0., 1.]), return_whole_sequence=False):
         t = t.to(z0)
-        print("Z0 ", z0.shape)
         z = ODEAdjoint.apply(z0, t, self.func.flatten_parameters(), self.func, self.ode_solve, self.STEP_SIZE)
         if return_whole_sequence:
             return z

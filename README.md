@@ -2,13 +2,13 @@
 [CVPR 2022] NODEO: A Neural Ordinary Differential Equation Based Optimization Framework for Deformable Image Registration
 
 # Usage
-Run Registration.py
-## will call on 
-## 1) Loss
-## 2) Network
-## 3) Neural ODE
-## 4) Utils 
-## the data
+Run Registration.py  changed 2D
+will call on 
+1) Loss              changed 2D
+2) Network           changed 2D
+3) Neural ODE        no changes
+4) Utils             changed 2D
+the data  
 
 
 # Label Index 

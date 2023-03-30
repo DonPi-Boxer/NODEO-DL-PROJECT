@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-##ALSO LEAVE THIS: klopt??
+## Changes needed for 2D
 ## Defines helper functions that are used in other files
 
 class SpatialTransformer(nn.Module):
@@ -58,6 +58,8 @@ class SpatialTransformer(nn.Module):
 def load_nii(path):
     X = nib.load(path)
     X = X.get_fdata()
+    if X.shape[-1] == 1:
+        X = X[..., 0]
     return X
 
 def save_nii(img, savename):
@@ -65,16 +67,15 @@ def save_nii(img, savename):
     new_img = nib.nifti1.Nifti1Image(img, affine, header=None)
     nib.save(new_img, savename)
 
-##Also needs to rewrite this in 2D...
-def generate_grid3D_tensor(shape):
+'changed to 2D: remove z'
+def generate_grid2D_tensor(shape):
     x_grid = torch.linspace(-1., 1., shape[0])
     y_grid = torch.linspace(-1., 1., shape[1])
-    z_grid = torch.linspace(-1., 1., shape[2])
-    x_grid, y_grid, z_grid = torch.meshgrid(x_grid, y_grid, z_grid)
+    x_grid, y_grid= torch.meshgrid(x_grid, y_grid)
 
     # Note that default the dimension in the grid is reversed:
-    # z, y, x
-    grid = torch.stack([z_grid, y_grid, x_grid], dim=0)
+    # y, x
+    grid = torch.stack([y_grid, x_grid], dim=0)
     return grid
 
 def dice(array1, array2, labels):

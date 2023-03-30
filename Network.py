@@ -12,6 +12,7 @@ from NeuralODE import ODEF
 
 ## We don't use this GK, only AK (better for workload)
 ## This is ensured by default = AK in 'Registration' file
+
 class GaussianKernel(torch.nn.Module):
     def __init__(self, win=11, nsig=0.1):
         super(GaussianKernel, self).__init__()
@@ -44,8 +45,8 @@ class GaussianKernel(torch.nn.Module):
 
     def forward(self, x):
         pad = int((self.win - 1) / 2)
-        # Apply Gaussian by 3D kernel
-        x = F.conv3d(x, self.kernel, padding=pad)
+        # Apply Gaussian by 2D kernel
+        x = F.conv2d(x, self.kernel, padding=pad)
         return x
 
 
@@ -59,29 +60,24 @@ class AveragingKernel(torch.nn.Module):
         v = v.double()
 
         half_win = int(win_size / 2)
-        pad = [half_win + 1, half_win] * 3
+        pad = [half_win + 1, half_win] * 2
 
-        v_padded = F.pad(v, pad=pad, mode='constant', value=0)  # [x+pad, y+pad, z+pad]
+        v_padded = F.pad(v, pad=pad, mode='constant', value=0)  # [x+pad, y+pad]
 
         # Run the cumulative sum across all 3 dimensions
         v_cs_x = torch.cumsum(v_padded, dim=2)
         v_cs_xy = torch.cumsum(v_cs_x, dim=3)
-        v_cs_xyz = torch.cumsum(v_cs_xy, dim=4)
 
-        x, y, z = v.shape[2:]
+        x, y = v.shape[2:]
 
         # Use subtraction to calculate the window sum
-        v_win = v_cs_xyz[:, :, win_size:, win_size:, win_size:] \
-                - v_cs_xyz[:, :, win_size:, win_size:, :z] \
-                - v_cs_xyz[:, :, win_size:, :y, win_size:] \
-                - v_cs_xyz[:, :, :x, win_size:, win_size:] \
-                + v_cs_xyz[:, :, win_size:, :y, :z] \
-                + v_cs_xyz[:, :, :x, win_size:, :z] \
-                + v_cs_xyz[:, :, :x, :y, win_size:] \
-                - v_cs_xyz[:, :, :x, :y, :z]
+        v_win = v_cs_xy[:, :, win_size:, win_size:] \
+                - v_cs_xy[:, :, win_size:, :y] \
+                - v_cs_xy[:, :, :x, win_size:] \
+                + v_cs_xy[:, :, :x, :y]
 
         # Normalize by number of elements
-        v_win = v_win / (win_size ** 3)
+        v_win = v_win / (win_size ** 2)
         v_win = v_win.float()
         return v_win
 
@@ -100,20 +96,18 @@ class BrainNet(ODEF):
         self.smoothing_kernel = smoothing_kernel
         self.smoothing_pass = smoothing_pass
         # self.enc_conv1 = nn.Conv3d(3, 32, kernel_size=3, stride=2, padding=1, padding_mode=padding_mode, bias=bias)
-        self.enc_conv2 = nn.Conv3d(3, 32, kernel_size=3, stride=2, padding=1, padding_mode=padding_mode, bias=bias)
-        self.enc_conv3 = nn.Conv3d(32, 32, kernel_size=3, stride=2, padding=1, padding_mode=padding_mode, bias=bias)
-        self.enc_conv4 = nn.Conv3d(32, 32, kernel_size=3, stride=2, padding=1, padding_mode=padding_mode, bias=bias)
-        self.enc_conv5 = nn.Conv3d(32, 32, kernel_size=3, stride=2, padding=1, padding_mode=padding_mode, bias=bias)
-        self.enc_conv6 = nn.Conv3d(32, 32, kernel_size=3, stride=2, padding=1, padding_mode=padding_mode, bias=bias)
+        self.enc_conv2 = nn.Conv2d(2, 32, kernel_size=3, stride=2, padding=1, padding_mode=padding_mode, bias=bias)
+        self.enc_conv3 = nn.Conv2d(32, 32, kernel_size=3, stride=2, padding=1, padding_mode=padding_mode, bias=bias)
+        self.enc_conv4 = nn.Conv2d(32, 32, kernel_size=3, stride=2, padding=1, padding_mode=padding_mode, bias=bias)
+        self.enc_conv5 = nn.Conv2d(32, 32, kernel_size=3, stride=2, padding=1, padding_mode=padding_mode, bias=bias)
+        self.enc_conv6 = nn.Conv2d(32, 32, kernel_size=3, stride=2, padding=1, padding_mode=padding_mode, bias=bias)
         self.bottleneck_sz = int(
-            math.ceil(img_sz[0] / pow(2, self.ds)) * math.ceil(img_sz[1] / pow(2, self.ds)) * math.ceil(
-                img_sz[2] / pow(2, self.ds)))
+            math.ceil(img_sz[0] / pow(2, self.ds)) * math.ceil(img_sz[1] / pow(2, self.ds)))  # 'was: img_sz[2] and extra element'
         
         ## 864 might need to be (manually, hard-coded) changed. Also possible to calculate this in a smart way. 
         ## Not usual to define so explicitly
-        self.lin1 = nn.Linear(864, self.bs, bias=bias)
-
-        self.lin2 = nn.Linear(self.bs, self.bottleneck_sz * 3, bias=bias)
+        self.lin1 = nn.Linear(960, self.bs, bias=bias)
+        self.lin2 = nn.Linear(self.bs, self.bottleneck_sz * 2, bias=bias) # 2 for 2d
         self.relu = nn.ReLU()
 
         # Create smoothing kernels
@@ -140,7 +134,8 @@ class BrainNet(ODEF):
         ## use debugging tool (?)
         x = x.view(1, 2, int(math.ceil(imgx / pow(2, self.ds))), int(math.ceil(imgy / pow(2, self.ds))))
         for _ in range(self.ds):
-            x = F.upsample(x, scale_factor=2, mode='bilinear')
+            x = F.interpolate(x, scale_factor=2, mode='bilinear', align_corners=False)
+            #x = F.upsample(x, scale_factor=2, mode='bilinear')
         # Apply Gaussian/Averaging smoothing
         for _ in range(self.smoothing_pass):
             if self.smoothing_kernel == 'AK':

@@ -7,8 +7,11 @@ from Loss import *
 from NeuralODE import *
 from Utils import *
 
+'changes made for 2D'
+
 '"main" defines what to do with config'
 'input is config, this is the configuration specification defined at bottom of this script'
+
 def main(config):
     device = torch.device(config.device)  ## config.device: now set to 'CPU'
     fixed = load_nii(config.fixed)        ## load the fixed image(s)
@@ -36,6 +39,7 @@ def registration(config, device, moving, fixed):
     :return all_phi: Displacement field for all time steps.
     '''
     im_shape = fixed.shape
+
     moving = torch.from_numpy(moving).to(device).float()
     fixed = torch.from_numpy(fixed).to(device).float()
     # make batch dimension
@@ -55,10 +59,11 @@ def registration(config, device, moving, fixed):
     'use class "NeuralODE" from script "NeuralODE"'
     ode_train = NeuralODE(Network, config.optimizer, config.STEP_SIZE).to(device)
 
+    'changed: 3-->2 and removed a 1 at the end'
     # training loop
-    scale_factor = torch.tensor(im_shape).to(device).view(1, 3, 1, 1, 1) * 1.
+    scale_factor = torch.tensor(im_shape).to(device).view(1, 2, 1, 1) * 1.
     ST = SpatialTransformer(im_shape).to(device)  # spatial transformer to warp image
-    grid = generate_grid3D_tensor(im_shape).unsqueeze(0).to(device)  # [-1,1]
+    grid = generate_grid2D_tensor(im_shape).unsqueeze(0).to(device)  # [-1,1]
 
     # Define optimizer
     optimizer = torch.optim.Adam(ode_train.parameters(), lr=config.lr, amsgrad=True)
@@ -121,10 +126,10 @@ def evaluation(config, device, df, df_with_grid):
 
 'utensil for "main"'
 def save_result(config, df, warped_moving):
-    save_nii(df.permute(2,3,4,0,1).detach().cpu().numpy(), '%s/df.nii.gz' % (config.savepath))
+    save_nii(df.permute(2,3,0,1).detach().cpu().numpy(), '%s/df.nii.gz' % (config.savepath)) #'was: permute(2,3,4,0,1)
     save_nii(warped_moving.detach().cpu().numpy(), '%s/warped.nii.gz' % (config.savepath))
 
-'configuration: de definition of what to use'
+'configuration: the definition of what to use'
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # File path

@@ -33,12 +33,15 @@ def registration(config, device, moving, fixed):
     :return all_phi: Displacement field for all time steps.
     '''
     im_shape = fixed.shape
+    print("fixed shape" , im_shape)
+    print("moving shape ", moving.shape)
     moving = torch.from_numpy(moving).to(device).float()
     fixed = torch.from_numpy(fixed).to(device).float()
     # make batch dimension
     moving = moving.unsqueeze(0).unsqueeze(0)
+    print("moving2 size is", moving.shape)
     fixed = fixed.unsqueeze(0).unsqueeze(0)
-
+    print("fixed2 size is ", fixed.shape)
     Network = BrainNet(img_sz=im_shape,
                        smoothing_kernel=config.smoothing_kernel,
                        smoothing_win=config.smoothing_win,
@@ -53,7 +56,8 @@ def registration(config, device, moving, fixed):
     scale_factor = torch.tensor(im_shape).to(device).view(1, 3, 1, 1, 1) * 1.
     ST = SpatialTransformer(im_shape).to(device)  # spatial transformer to warp image
     grid = generate_grid3D_tensor(im_shape).unsqueeze(0).to(device)  # [-1,1]
-
+    #print("grid size ", grid.shape)
+    #print("nparant ", np.arange(config.time_steps))
     # Define optimizer
     optimizer = torch.optim.Adam(ode_train.parameters(), lr=config.lr, amsgrad=True)
     loss_NCC = NCC(win=config.NCC_win)
@@ -102,6 +106,7 @@ def evaluation(config, device, df, df_with_grid):
     print('Total of neg Jet: ', mean_neg_J)
     print('Ratio of neg Jet: ', ratio_neg_J)
     ### Calculate Dice
+    #label = [12, 13, 14, 15, 16, 17, 18]
     label = [2, 3, 4, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18]
     fixed_seg = load_nii(config.fixed_seg)
     moving_seg = load_nii(config.moving_seg)
@@ -186,10 +191,15 @@ if __name__ == '__main__':
     parser.add_argument("--debug", type=bool,
                         dest="debug", default=False,
                         help="debug mode")
-    # Device
+    # Device run on GPU
+    #parser.add_argument("--device", type=str,
+    #                    dest="device", default='cuda:0',
+    #                    help="gpu: cuda:0; cpu: cpu")
+    
+    # Device run on CPU
+    
     parser.add_argument("--device", type=str,
-                        dest="device", default='cuda:0',
-                        help="gpu: cuda:0; cpu: cpu")
+                        dest="device", default='cpu')
 
     config = parser.parse_args()
     if not os.path.isdir(config.savepath):

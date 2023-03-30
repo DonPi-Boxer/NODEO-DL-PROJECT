@@ -194,7 +194,7 @@ if __name__ == '__main__':
     # Device run on CPU    
     #parser.add_argument("--device", type=str,
     #                    dest="device", default='cpu')
-    #config = parser.parse_args()
-    #if not os.path.isdir(config.savepath):
-    #    os.makedirs(config.savepath)
+    config = parser.parse_args()
+    if not os.path.isdir(config.savepath):
+        os.makedirs(config.savepath)
     main(config)

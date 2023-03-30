@@ -1,2 +1,4 @@
 oasis-data/
 .venv/
+result/
+__pycache__/

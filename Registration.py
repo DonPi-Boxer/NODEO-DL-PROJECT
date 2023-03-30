@@ -102,7 +102,7 @@ def evaluation(config, device, df, df_with_grid):
     print('Total of neg Jet: ', mean_neg_J)
     print('Ratio of neg Jet: ', ratio_neg_J)
     ### Calculate Dice
-    label = [2, 3, 4, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 24, 28, 41, 42, 43, 46, 47, 49, 50, 51, 52, 53, 54, 60]
+    label = [1, 2, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 20, 21, 22, 24, 25, 26, 27, 28, 29, 30, 31]
     fixed_seg = load_nii(config.fixed_seg)
     moving_seg = load_nii(config.moving_seg)
     ST_seg = SpatialTransformer(fixed_seg.shape, mode='nearest').to(device)

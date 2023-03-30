@@ -29,32 +29,34 @@ def main(config):
     fixed_file_paths_seg = []     
     for dirpath, dirnames, filenames in os.walk('.'):
         for filename in [f for f in filenames if f.endswith("norm.nii.gz")]:
-            fixed_set_name.append(os.path.basename(os.path.normpath(dirpath)))
+            fixed_set_name.append(os.path.basename(os.path.join(dirpath))) 
             fixed_files_paths_mri.append(os.path.join(dirpath,filename))
         for filename in [f for f in filenames if f.endswith("seg35.nii.gz")]:
             fixed_file_paths_seg.append(os.path.join(dirpath,filename))
-
+    print(fixed_set_name)
+    print(moving_set_name)
             #print(moving_set_name)
             #print(fixed_set_name)
-        numruns = 0
-        runtime = 0
-        mean_avg_dice = []
-        for moving_set_name,moving_mri,moving_seg in zip(moving_set_name,moving_file_paths_mri,moving_file_paths_seg):
-            for fixed_set_name,fixed_mri,fixed_seg in zip(fixed_set_name,fixed_files_paths_mri,fixed_file_paths_seg):
-                    print("hi")
-                    if moving_mri != fixed_mri:
-                        numruns = numruns +1
-                        savedir = './result/' + moving_set_name +'/' + fixed_set_name
-                        if not os.path.isdir(savedir):
-                            os.makedirs(savedir)
-                        print("hi")
-                        avg_dice, runtime = Registration.main(config = config, moving_mri = moving_mri, fixed_mri = fixed_mri,savedir=savedir, fixed_seg_in = fixed_seg, moving_seg_in=moving_seg)
+    numruns = 0
+    runtime = 0
+    mean_avg_dice = []
+    for moving_set_name,moving_mri,moving_seg in zip(moving_set_name,moving_file_paths_mri,moving_file_paths_seg):
+        for fixed_set_name,fixed_mri,fixed_seg in zip(fixed_set_name,fixed_files_paths_mri,fixed_file_paths_seg):
+            print("hi")
+            if moving_mri != fixed_mri:
+                numruns = numruns +1
+                savedir = './result/' + moving_set_name +'/' + fixed_set_name
+                print(savedir)
+                if not os.path.isdir(savedir):
+                    os.makedirs(savedir)
+                print("hi")
+                avg_dice, runtime = Registration.main(config = config, moving_mri = moving_mri, fixed_mri = fixed_mri,savedir=savedir, fixed_seg_in = fixed_seg, moving_seg_in=moving_seg)
                         #Registration.parser.set_defaults(moving = moving_mri)
                         #avg_dice =  Registration.main('moving:', moving_mri, '--fixed', fixed_mri, '--moving_seg', moving_seg, '--fixed_seg', fixed_seg, '--savepath', savepath_run)
-                        runtime = runtime + runtime
-                        mean_avg_dice.append(avg_dice)
-                        print(avg_dice)
-                        print("Mean average dice after " , numruns , " runs is " , np.mean(mean_avg_dice))
+                runtime = runtime + runtime
+                mean_avg_dice.append(avg_dice)
+                print(avg_dice)
+                print("Mean average dice after " , numruns , " runs is " , np.mean(mean_avg_dice))
     print("all done ! Mean avg dice is ", np.mean(mean_avg_dice))
     print("total runtime was ", runtime, " for in total ", numruns, " Registrations")
 #moving_mri = moving_file_paths_mri[2]

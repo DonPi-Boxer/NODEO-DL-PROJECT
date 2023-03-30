@@ -186,15 +186,15 @@ if __name__ == '__main__':
     parser.add_argument("--debug", type=bool,
                         dest="debug", default=False,
                         help="debug mode")
-    # Device run on GPU
-    #parser.add_argument("--device", type=str,
-    #                    dest="device", default='cuda:0',
-    #                    help="gpu: cuda:0; cpu: cpu")
+    #Device run on GPU
+    parser.add_argument("--device", type=str,
+                        dest="device", default='cuda:0',
+                        help="gpu: cuda:0; cpu: cpu")
     
     # Device run on CPU    
-    parser.add_argument("--device", type=str,
-                        dest="device", default='cpu')
-    config = parser.parse_args()
-    if not os.path.isdir(config.savepath):
-        os.makedirs(config.savepath)
+    #parser.add_argument("--device", type=str,
+    #                    dest="device", default='cpu')
+    #config = parser.parse_args()
+    #if not os.path.isdir(config.savepath):
+    #    os.makedirs(config.savepath)
     main(config)

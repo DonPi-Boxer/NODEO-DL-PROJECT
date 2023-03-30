@@ -55,25 +55,10 @@ def main(config):
                         #avg_dice =  Registration.main('moving:', moving_mri, '--fixed', fixed_mri, '--moving_seg', moving_seg, '--fixed_seg', fixed_seg, '--savepath', savepath_run)
                 runtime = runtime + runtime
                 mean_avg_dice.append(avg_dice)
-                print(avg_dice)
-                print("Mean average dice after " , numruns , " runs is " , np.mean(mean_avg_dice))
+                #print(avg_dice)
+                print("Mean average dice after " , numruns , " registrations is " , np.mean(mean_avg_dice))
     print("all done ! Mean avg dice is ", np.mean(mean_avg_dice))
     print("total runtime was ", runtime, " for in total ", numruns, " Registrations")
-#moving_mri = moving_file_paths_mri[2]
-#print(moving_mri)
-#moving_seg = moving_file_paths_seg[2]
-#print(moving_seg)
-#fixed_mri = fixed_files_paths_mri[3]
-#print(fixed_mri)
-#fixed_seg = fixed_file_paths_seg[3]
-#print(fixed_seg)
-#savepath_run = "./bla"
-#subprocess.run(['python', 'Registration.py', '--moving', moving_mri, '--fixed', fixed_mri, '--moving_seg', moving_seg, '--fixed_seg', fixed_seg])
-#subprocess.run(['python', 'Registration.py', '--moving', './oasis-data/moving/OASIS_OAS1_0018_MR1/aligned_norm.nii.gz', '--fixed','./oasis-data/fixed/OASIS_OAS1_0030_MR1/aligned_norm.nii.gz',  '--moving_seg', './oasis-data/moving/OASIS_OAS1_0018_MR1/aligned_seg35.nii.gz', '--fixed_seg', './oasis-data/fixed/OASIS_OAS1_0030_MR1/aligned_seg35.nii.gz', '--savepath', savepath_run], capture_output=True)
-
-#m_avg_dice = np.mean(mean_avg_dice)
-#print("All done ! Mean average dice is " + m_avg_dice)
-#subprocess.run(['python', 'Registration.py', '--moving', './data/OAS1_0002_MR1/brain.nii.gz', '--fixed', './data/OAS1_0001_MR1/brain.nii.gz', '--moving_seg', './data/OAS1_0001_MR1/brain_aseg.nii.gz', '--fixed_seg', './data/OAS1_0002_MR1/brain_aseg.nii.gz'])
 
 
 if __name__ == '__main__':

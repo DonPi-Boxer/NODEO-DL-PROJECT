@@ -6,21 +6,23 @@ from Loss import *
 from NeuralODE import *
 from Utils import *
 
-def main(config):
+def main(config, moving_mri, fixed_mri, savedir, fixed_seg_in, moving_seg_in):
     device = torch.device(config.device)
-    fixed = load_nii(config.fixed)
-    moving = load_nii(config.moving)
+    ##CHANGED BY NJ
+    fixed = load_nii(fixed_mri)
+    ##CHANGED BY NJ
+    moving = load_nii(moving_mri)
     assert fixed.shape == moving.shape  # two images to be registered must in the same size
     t = time.time()
     df, df_with_grid, warped_moving = registration(config, device, moving, fixed)
     runtime = time.time() - t
     print('Registration Running Time:', runtime)
     print('---Registration DONE---')
-    av_dice = evaluation(config, device, df, df_with_grid)
+    av_dice = evaluation(config, device, df, df_with_grid, fixed_seg_in, moving_seg_in)
     print('---Evaluation DONE---')
-    save_result(config, df, warped_moving)
+    save_result(savedir, df, warped_moving)
     print('---Results Saved---')
-    return av_dice
+    return av_dice, runtime
 
 
 def registration(config, device, moving, fixed):
@@ -92,7 +94,7 @@ def registration(config, device, moving, fixed):
     return best_df, best_df_with_grid, best_warped_moving
 
 
-def evaluation(config, device, df, df_with_grid):
+def evaluation(config, device, df, df_with_grid, fixed_seg_in, moving_seg_in):
     ### Calculate Neg Jac Ratio
     neg_Jet = -1.0 * JacboianDet(df_with_grid)
     neg_Jet = F.relu(neg_Jet)
@@ -104,8 +106,10 @@ def evaluation(config, device, df, df_with_grid):
     print('Ratio of neg Jet: ', ratio_neg_J)
     ### Calculate Dice
     label = [1, 2, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 20, 21, 22, 24, 25, 26, 27, 28, 29, 30, 31]
-    fixed_seg = load_nii(config.fixed_seg)
-    moving_seg = load_nii(config.moving_seg)
+    ##CHANGED BY NJ
+    fixed_seg = load_nii(fixed_seg_in)
+    ##CHANGED BY NJ
+    moving_seg = load_nii(moving_seg_in)
     ST_seg = SpatialTransformer(fixed_seg.shape, mode='nearest').to(device)
     moving_seg = torch.from_numpy(moving_seg).to(device).float()
     # make batch dimension
@@ -116,28 +120,30 @@ def evaluation(config, device, df, df_with_grid):
     av_dice = np.mean(dice_move2fix[0])
     return av_dice
 
-def save_result(config, df, warped_moving):
-    save_nii(df.permute(2,3,4,0,1).detach().cpu().numpy(), '%s/df.nii.gz' % (config.savepath))
-    save_nii(warped_moving.detach().cpu().numpy(), '%s/warped.nii.gz' % (config.savepath))
+def save_result(savedir, df, warped_moving):
+    ##CHANGED BY NJ
+    save_nii(df.permute(2,3,4,0,1).detach().cpu().numpy(), '%s/df.nii.gz' % (savedir))
+    ##CHANGED BY NJ
+    save_nii(warped_moving.detach().cpu().numpy(), '%s/warped.nii.gz' % (savedir))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # File path
-    parser.add_argument("--savepath", type=str,
-                        dest="savepath", default='./result',
-                        help="path for saving results")
-    parser.add_argument("--fixed", type=str,
-                        dest="fixed", default='./data/OAS1_0001_MR1/brain.nii.gz',
-                        help="fixed image data path")
-    parser.add_argument("--moving", type=str,
-                        dest="moving", default='./data/OAS1_0002_MR1/brain.nii.gz',
-                        help="moving image data path")
-    parser.add_argument("--fixed_seg", type=str,
-                        dest="fixed_seg", default='./data/OAS1_0001_MR1/brain_aseg.nii.gz',
-                        help="fixed image segmentation data path")
-    parser.add_argument("--moving_seg", type=str,
-                        dest="moving_seg", default='./data/OAS1_0002_MR1/brain_aseg.nii.gz',
-                        help="moving image segmentation data path")
+    #parser.add_argument("--savepath", type=str,
+    #                    dest="savepath", default='./result',
+    #                    help="path for saving results")
+    #parser.add_argument("--fixed", type=str,
+    #                    dest="fixed", default='./data/OAS1_0001_MR1/brain.nii.gz',
+    #                    help="fixed image data path")
+    #parser.add_argument("--moving", type=str,
+    #                    dest="moving", default='./data/OAS1_0002_MR1/brain.nii.gz',
+    #                    help="moving image data path")
+    #parser.add_argument("--fixed_seg", type=str,
+    ##                    dest="fixed_seg", default='./data/OAS1_0001_MR1/brain_aseg.nii.gz',
+    #                    help="fixed image segmentation data path")
+    #parser.add_argument("--moving_seg", type=str,
+    #                    dest="moving_seg", default='./data/OAS1_0002_MR1/brain_aseg.nii.gz',
+    #                    help="moving image segmentation data path")
     # Model configuration
     parser.add_argument("--ds", type=int,
                         dest="ds", default=2,
@@ -200,4 +206,5 @@ if __name__ == '__main__':
     config = parser.parse_args()
     if not os.path.isdir(config.savepath):
         os.makedirs(config.savepath)
+    
     main(config)

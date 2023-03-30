@@ -111,10 +111,15 @@ class BrainNet(ODEF):
             math.ceil(img_sz[0] / pow(2, self.ds)) * math.ceil(img_sz[1] / pow(2, self.ds)) * math.ceil(
                 img_sz[2] / pow(2, self.ds)))
         
+        
+        ##### BUG FOUND HERE: FIX IT TO THE CORRECT VALUE. WHICH VALUE IS THIS
         ## 864 might need to be (manually, hard-coded) changed. Also possible to calculate this in a smart way. 
         ## Not usual to define so explicitly
-        self.lin1 = nn.Linear(864, self.bs, bias=bias)
-        
+       
+        #BUG IS HERE. Value was 864, hard coded this to 1152 to match matrix dimensions
+        #why did this work tho ?
+        #self.lin1 = nn.Linear(864, self.bs, bias=bias)
+        self.lin1 = nn.Linear(1152, self.bs, bias=bias)
         
         self.lin2 = nn.Linear(self.bs, self.bottleneck_sz * 3, bias=bias)
         self.relu = nn.ReLU()
@@ -128,11 +133,11 @@ class BrainNet(ODEF):
             self.sk = GaussianKernel(win=smoothing_win, nsig=0.1)
 
     def forward(self, x):
-
+        #bug is somehwere here, but where ?
         imgx = self.img_sz[0]
         imgy = self.img_sz[1]
         imgz = self.img_sz[2]
-        # x = self.relu(self.enc_conv1(x))
+        #x = self.relu(self.enc_conv1(x))
         x = F.interpolate(x, scale_factor=0.5, mode='trilinear')  # Optional to downsample the image
         x = self.relu(self.enc_conv2(x))
         x = self.relu(self.enc_conv3(x))

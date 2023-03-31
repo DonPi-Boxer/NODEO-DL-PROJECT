@@ -46,8 +46,8 @@ def main(config):
                 if not os.path.isdir(savedir):
                     os.makedirs(savedir)
                 avg_dice, runtime_run = Registration.main(config = config, moving_mri = moving_mri, fixed_mri = fixed_mri,savedir=savedir, fixed_seg_in = fixed_seg, moving_seg_in=moving_seg)
-                Registration.parser.set_defaults(moving = moving_mri)
-                avg_dice =  Registration.main('moving:', moving_mri, '--fixed', fixed_mri, '--moving_seg', moving_seg, '--fixed_seg', fixed_seg, '--savepath', savepath_run)
+               # Registration.parser.set_defaults(moving = moving_mri)
+                #avg_dice =  Registration.main('moving:', moving_mri, '--fixed', fixed_mri, '--moving_seg', moving_seg, '--fixed_seg', fixed_seg, '--savepath', savepath_run)
                 runtime.append(runtime_run)
                 mean_avg_dice.append(avg_dice)
                 print("Mean average dice after " , numruns , " registrations is " , np.mean(mean_avg_dice))

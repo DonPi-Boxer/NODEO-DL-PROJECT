@@ -8,57 +8,52 @@ import numpy as np
 #get and store all file paths for the MRI images and the segmentations in arrays
 
 def main(config):
-    moving_data_dir = './oasis-data/fixed'
+    moving_data_dir = './oasis-data/moving'
     #moving_data_labels = np.arange(1,49,1)
 
-    #fixed_data_dir = './oasis-data/fixed'
+    fixed_data_dir = './oasis-data/fixed'
     #fixed_data_labels = [10,20,30,40,50]
 
-    moving_set_name = []
+    moving_set_name_arr = []
     moving_file_paths_mri = []
     moving_file_paths_seg = []
-    for dirpath, dirnames, filenames in os.walk(moving_data_dir):
-        for filename in [f for f in filenames if f.endswith("norm.nii.gz")]:
-            moving_set_name.append(os.path.basename(os.path.normpath(dirpath)))
-            moving_file_paths_mri.append(os.path.join(dirpath,filename))
-        for filename in [f for f in filenames if f.endswith("seg35.nii.gz")]:    
-            moving_file_paths_seg.append(os.path.join(dirpath,filename))
-        
-    fixed_set_name =[]
+    fixed_set_name_arr =[]
     fixed_files_paths_mri = []
-    fixed_file_paths_seg = []     
-    for dirpath, dirnames, filenames in os.walk('.'):
+    fixed_file_paths_seg = [] 
+    for dirpath, dirnames, filenames in os.walk(moving_data_dir):
+        for mriname in [f for f in filenames if f.endswith("norm.nii.gz")]:
+            moving_set_name_arr.append(os.path.basename(os.path.normpath(dirpath)))
+            moving_file_paths_mri.append(os.path.join(dirpath,mriname))
+        for segname in [f for f in filenames if f.endswith("seg35.nii.gz")]:    
+            moving_file_paths_seg.append(os.path.join(dirpath,segname))
+    
+    for dirpath, dirnames, filenames in os.walk(fixed_data_dir):
         for filename in [f for f in filenames if f.endswith("norm.nii.gz")]:
-            fixed_set_name.append(os.path.basename(os.path.join(dirpath))) 
+            fixed_set_name_arr.append(os.path.basename(os.path.normpath(dirpath))) 
             fixed_files_paths_mri.append(os.path.join(dirpath,filename))
         for filename in [f for f in filenames if f.endswith("seg35.nii.gz")]:
             fixed_file_paths_seg.append(os.path.join(dirpath,filename))
-    #print(fixed_set_name)
-    #print(moving_set_name)
-            #print(moving_set_name)
-            #print(fixed_set_name)
     numruns = 0
-    runtime = 0
+    runtime = []
     mean_avg_dice = []
-    for moving_set_name,moving_mri,moving_seg in zip(moving_set_name,moving_file_paths_mri,moving_file_paths_seg):
-        for fixed_set_name,fixed_mri,fixed_seg in zip(fixed_set_name,fixed_files_paths_mri,fixed_file_paths_seg):
-            #print("hi")
+    for moving_set_name,moving_mri,moving_seg in zip(moving_set_name_arr,moving_file_paths_mri,moving_file_paths_seg):
+        for fixed_set_name,fixed_mri,fixed_seg in zip(fixed_set_name_arr,fixed_files_paths_mri,fixed_file_paths_seg):
+            numruns = numruns + 1
             if moving_mri != fixed_mri:
                 numruns = numruns +1
                 savedir = './result/' + moving_set_name +'/' + fixed_set_name
                 print(savedir)
                 if not os.path.isdir(savedir):
                     os.makedirs(savedir)
-                #print("hi")
-                avg_dice, runtime = Registration.main(config = config, moving_mri = moving_mri, fixed_mri = fixed_mri,savedir=savedir, fixed_seg_in = fixed_seg, moving_seg_in=moving_seg)
-                        #Registration.parser.set_defaults(moving = moving_mri)
-                        #avg_dice =  Registration.main('moving:', moving_mri, '--fixed', fixed_mri, '--moving_seg', moving_seg, '--fixed_seg', fixed_seg, '--savepath', savepath_run)
-                runtime = runtime + runtime
+                avg_dice, runtime_run = Registration.main(config = config, moving_mri = moving_mri, fixed_mri = fixed_mri,savedir=savedir, fixed_seg_in = fixed_seg, moving_seg_in=moving_seg)
+                Registration.parser.set_defaults(moving = moving_mri)
+                avg_dice =  Registration.main('moving:', moving_mri, '--fixed', fixed_mri, '--moving_seg', moving_seg, '--fixed_seg', fixed_seg, '--savepath', savepath_run)
+                runtime.append(runtime_run)
                 mean_avg_dice.append(avg_dice)
-                #print(avg_dice)
                 print("Mean average dice after " , numruns , " registrations is " , np.mean(mean_avg_dice))
     print("all done ! Mean avg dice is ", np.mean(mean_avg_dice))
-    print("total runtime was ", runtime, " for in total ", numruns, " Registrations")
+    print("total runtime was ", np.sum(runtime), " for in total ", numruns, " Registrations")
+    print("So average runtime was ", np.mean(runtime))
 
 
 if __name__ == '__main__':

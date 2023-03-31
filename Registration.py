@@ -20,7 +20,7 @@ def main(config, moving_mri, fixed_mri, savedir, fixed_seg_in, moving_seg_in):
     print('---Registration DONE---')
     av_dice = evaluation(config, device, df, df_with_grid, fixed_seg_in, moving_seg_in)
     print('---Evaluation DONE---')
-    save_result(savedir, df, warped_moving)
+    save_result(savedir, warped_moving)
     print('---Results Saved---')
     return av_dice, runtime
 
@@ -120,9 +120,10 @@ def evaluation(config, device, df, df_with_grid, fixed_seg_in, moving_seg_in):
     av_dice = np.mean(dice_move2fix[0])
     return av_dice
 
-def save_result(savedir, df, warped_moving):
+#Changed to remove df
+def save_result(savedir, warped_moving):
     ##CHANGED BY NJ
-    save_nii(df.permute(2,3,4,0,1).detach().cpu().numpy(), '%s/df.nii.gz' % (savedir))
+    #save_nii(df.permute(2,3,4,0,1).detach().cpu().numpy(), '%s/df.nii.gz' % (savedir))
     ##CHANGED BY NJ
     save_nii(warped_moving.detach().cpu().numpy(), '%s/warped.nii.gz' % (savedir))
 

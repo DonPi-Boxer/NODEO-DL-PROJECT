@@ -1,4 +1,5 @@
 import os
+import sys
 import glob
 import Registration
 import argparse
@@ -36,6 +37,8 @@ def main(config):
     numruns = 0
     runtime = []
     mean_avg_dice = []
+    mean_neg_j = []
+    ratio_neg_j = []
     for moving_set_name,moving_mri,moving_seg in zip(moving_set_name_arr,moving_file_paths_mri,moving_file_paths_seg):
         for fixed_set_name,fixed_mri,fixed_seg in zip(fixed_set_name_arr,fixed_files_paths_mri,fixed_file_paths_seg):
             if moving_mri != fixed_mri:
@@ -44,15 +47,34 @@ def main(config):
                 print(savedir)
                 if not os.path.isdir(savedir):
                     os.makedirs(savedir)
-                avg_dice, runtime_run = Registration.main(config = config, moving_mri = moving_mri, fixed_mri = fixed_mri,savedir=savedir, fixed_seg_in = fixed_seg, moving_seg_in=moving_seg)
+                avg_dice, runtime_run, mean_neg_j_run, ratio_neg_j_run = Registration.main(config = config, moving_mri = moving_mri, fixed_mri = fixed_mri,savedir=savedir, fixed_seg_in = fixed_seg, moving_seg_in=moving_seg)
                 runtime.append(runtime_run)
                 mean_avg_dice.append(avg_dice)
+                mean_neg_j.append(mean_neg_j_run)
+                ratio_neg_j.append(ratio_neg_j)
                 print("Mean average dice after " , numruns , " registrations is " , np.mean(mean_avg_dice))
-    print("all done ! Mean avg dice is ", np.mean(mean_avg_dice))
+                print("Mean total negjet after " , numruns , " registrations is " , np.mean(mean_neg_j))
+                print("Ratio negjet after " , numruns , " registrations is " , np.mean(ratio_neg_j))
+    #print to terminale, now do this double as im ensure if subseuqent saving works
+    print("all done !")
+    print("Mean avg dice is ", np.mean(mean_avg_dice), "with an std of ", np.std(mean_avg_dice))
+    print("Mean total negjet is", np.mean(mean_neg_j), "with an std of ", np.std(mean_neg_j))
+    print("Mean ratio negjes is ", np.mean(ratio_neg_j), " with an std of ", np.std(ratio_neg_j))
     print("total runtime was ", np.sum(runtime), " for in total ", numruns, " Registrations")
     print("So average runtime was ", np.mean(runtime))
+    original_stdout = sys.stdout
+    #print to terminal and save to a textfile
 
-
+    with open('performance.txt', 'w') as f:
+        sys.stdout = f
+        print("all done !")
+        print("Mean avg dice is ", np.mean(mean_avg_dice), "with an std of ", np.std(mean_avg_dice))
+        print("Mean total negjet is", np.mean(mean_neg_j), "with an std of ", np.std(mean_neg_j))
+        print("Mean ratio negjes is ", np.mean(ratio_neg_j), " with an std of ", np.std(ratio_neg_j))
+        print("total runtime was ", np.sum(runtime), " for in total ", numruns, " Registrations")
+        print("So average runtime was ", np.mean(runtime))
+        sys.stdout = original_stdout
+        
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # File path

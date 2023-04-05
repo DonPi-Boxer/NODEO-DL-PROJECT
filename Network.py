@@ -104,8 +104,9 @@ class BrainNet(ODEF):
         self.bottleneck_sz = int(
             math.ceil(img_sz[0] / pow(2, self.ds)) * math.ceil(img_sz[1] / pow(2, self.ds)))  # 'was: img_sz[2] and extra element'
         
-        ## 864 might need to be (manually, hard-coded) changed. Also possible to calculate this in a smart way. 
-        ## Not usual to define so explicitly
+        ' 864 might need to be (manually, hard-coded) changed. Also possible to calculate this in a smart way'
+        ' Not usual to define so explicitly'
+        ' we changed it to 960'
         self.lin1 = nn.Linear(960, self.bs, bias=bias)
         self.lin2 = nn.Linear(self.bs, self.bottleneck_sz * 2, bias=bias) # 2 for 2d
         self.relu = nn.ReLU()
@@ -137,6 +138,7 @@ class BrainNet(ODEF):
             x = F.interpolate(x, scale_factor=2, mode='bilinear', align_corners=False)
             #x = F.upsample(x, scale_factor=2, mode='bilinear')
         # Apply Gaussian/Averaging smoothing
+        'to make fig.4, remove the application of smoothing, simply comment out'
         for _ in range(self.smoothing_pass):
             if self.smoothing_kernel == 'AK':
                 x = self.sk(x)

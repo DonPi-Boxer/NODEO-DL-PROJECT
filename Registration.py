@@ -8,6 +8,7 @@ from NeuralODE import *
 from Utils import *
 
 'changes made for 2D'
+'to make the results of fig.4, we added them to the save_results function'
 
 '"main" defines what to do with config'
 'input is config, this is the configuration specification defined at bottom of this script'
@@ -24,8 +25,10 @@ def main(config):
     print('---Registration DONE---')
     evaluation(config, device, df, df_with_grid)
     print('---Evaluation DONE---')
-    save_result(config, df, warped_moving)
+    save_result(config, df, warped_moving, df_with_grid)
     print('---Results Saved---')
+    #save_result(config, df, warped_moving)
+
 
 '"registration defines the process of going through the neural network'
 def registration(config, device, moving, fixed):
@@ -75,6 +78,7 @@ def registration(config, device, moving, fixed):
         all_phi = (all_phi + 1.) / 2. * scale_factor  # [-1, 1] -> voxel spacing
         phi = all_phi[-1]
         grid_voxel = (grid + 1.) / 2. * scale_factor  # [-1, 1] -> voxel spacing
+        #df = phi 'probeersel'
         df = phi - grid_voxel  # with grid -> without grid
         warped_moving, df_with_grid = ST(moving, df, return_phi=True)
         # similarity loss
@@ -86,6 +90,9 @@ def registration(config, device, moving, fixed):
         loss_J = config.lambda_J * neg_Jdet_loss(df_with_grid)
         # phi dphi/dx loss
         loss_df = config.lambda_df * smoothloss_loss(df)
+        ' Regularisation term consists of above three terms'
+        ' To make table 4 simply remove it from the "loss" expression: '
+        #loss = loss_sim + loss_v + loss_df
         loss = loss_sim + loss_v + loss_J + loss_df
         optimizer.zero_grad()
         loss.backward()
@@ -125,9 +132,20 @@ def evaluation(config, device, df, df_with_grid):
     print('Avg. dice on %d structures: ' % len(label), np.mean(dice_move2fix[0]))
 
 'utensil for "main"'
-def save_result(config, df, warped_moving):
+def save_result(config, df, warped_moving, df_with_grid):
     save_nii(df.permute(2,3,0,1).detach().cpu().numpy(), '%s/df.nii.gz' % (config.savepath)) #'was: permute(2,3,4,0,1)
     save_nii(warped_moving.detach().cpu().numpy(), '%s/warped.nii.gz' % (config.savepath))
+    'psi: deformation field applied to grid'
+    save_nii(df_with_grid.detach().cpu().numpy(), '%s/df_grid.nii.gz' % (config.savepath))
+    'Dpsi: jacobian determinants of deformation field'
+    Jdet_df_withgrid = JacboianDet(df_with_grid)
+    save_nii(Jdet_df_withgrid.detach().cpu().numpy(), '%s/Jdet_df_withgrid.nii.gz' % (config.savepath))
+    Jdet_df = JacboianDet(df)
+    save_nii(Jdet_df.detach().cpu().numpy(), '%s/Jdet_df.nii.gz' % (config.savepath))
+    'neg det: regions with negative jacobian determinants'
+    neg_Jet = -1.0 * JacboianDet(df_with_grid)
+    neg_Jet = F.relu(neg_Jet)
+    save_nii(neg_Jet.detach().cpu().numpy(), '%s/neg_Jet.nii.gz' % (config.savepath))
 
 'configuration: the definition of what to use'
 if __name__ == '__main__':
@@ -139,10 +157,10 @@ if __name__ == '__main__':
     ## changed defaults to refer to 2d data
     ## fixed and moving img, raw
     parser.add_argument("--fixed", type=str,
-                        dest="fixed", default='./2Ddata/OASIS_OAS1_0001_MR1/slice_orig.nii.gz',
+                        dest="fixed", default='./2Ddata/OASIS_OAS1_0001_MR1/slice_norm.nii.gz',
                         help="fixed image data path")
     parser.add_argument("--moving", type=str,
-                        dest="moving", default='./2Ddata/OASIS_OAS1_0002_MR1/slice_orig.nii.gz',
+                        dest="moving", default='./2Ddata/OASIS_OAS1_0002_MR1/slice_norm.nii.gz',
                         help="moving image data path")
     ## fixed and moving img, segmented
     parser.add_argument("--fixed_seg", type=str,

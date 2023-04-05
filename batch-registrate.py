@@ -51,7 +51,7 @@ def main(config):
                 runtime.append(runtime_run)
                 mean_avg_dice.append(avg_dice)
                 mean_neg_j.append(mean_neg_j_run)
-                ratio_neg_j.append(ratio_neg_j)
+                ratio_neg_j.append(ratio_neg_j_run)
                 print("Mean average dice after " , numruns , " registrations is " , np.mean(mean_avg_dice))
                 print("Mean total negjet after " , numruns , " registrations is " , np.mean(mean_neg_j))
                 print("Ratio negjet after " , numruns , " registrations is " , np.mean(ratio_neg_j))

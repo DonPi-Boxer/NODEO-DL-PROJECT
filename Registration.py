@@ -18,11 +18,11 @@ def main(config, moving_mri, fixed_mri, savedir, fixed_seg_in, moving_seg_in):
     runtime = time.time() - t
     print('Registration Running Time:', runtime)
     print('---Registration DONE---')
-    av_dice = evaluation(config, device, df, df_with_grid, fixed_seg_in, moving_seg_in)
+    av_dice, mean_neg_j, ratio_neg_j  = evaluation(config, device, df, df_with_grid, fixed_seg_in, moving_seg_in)
     print('---Evaluation DONE---')
     save_result(savedir, warped_moving)
     print('---Results Saved---')
-    return av_dice, runtime
+    return av_dice, runtime, mean_neg_j, ratio_neg_j 
 
 
 def registration(config, device, moving, fixed):
@@ -122,7 +122,7 @@ def evaluation(config, device, df, df_with_grid, fixed_seg_in, moving_seg_in):
     dice_move2fix = dice(warped_seg.unsqueeze(0).unsqueeze(0).detach().cpu().numpy(), fixed_seg, label)
     print('Avg. dice on %d structures: ' % len(label), np.mean(dice_move2fix[0]))
     av_dice = np.mean(dice_move2fix[0])
-    return av_dice
+    return av_dice, mean_neg_J, ratio_neg_J
 
 #Changed to remove df
 def save_result(savedir, warped_moving):

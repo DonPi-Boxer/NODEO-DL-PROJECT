@@ -62,6 +62,7 @@ class ODEF(nn.Module):
             adfdp = torch.cat([p_grad.flatten() for p_grad in adfdp]).unsqueeze(
                 0)  # unsqueeze(0) add dimension 1 to the position 0
             adfdp = adfdp.expand(batch_size, -1) / batch_size  # passing -1 does not change dimension in that position
+            adfdp = adfdp.expand(batch_size, -1) / batch_size  # passing -1 does not change dimension in that position
         return out, adfdz, adfdp
 
     def flatten_parameters(self):

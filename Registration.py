@@ -1,14 +1,17 @@
 import argparse
 import os
 import time
+
+import Loss
 from Network import BrainNet
 from Loss import *
-'import *: means import everything'
 from NeuralODE import *
 from Utils import *
+import Visuals
+import matplotlib.pyplot as plt
 
 'changes made for 2D'
-'to make the results of fig.4, we added them to the save_results function'
+'to make the results of fig.4, we added them to the main function'
 
 '"main" defines what to do with config'
 'input is config, this is the configuration specification defined at bottom of this script'
@@ -18,16 +21,38 @@ def main(config):
     fixed = load_nii(config.fixed)        ## load the fixed image(s)
     moving = load_nii(config.moving)      ## and moving image(s)
     assert fixed.shape == moving.shape    # two images to be registered must in the same size
+    # Plot moving and fixed as a 2d image
+    Visuals.plot_image(moving, 'Moving Image')
+    Visuals.plot_image(fixed, 'Fixed Image')
+
     t = time.time()
     df, df_with_grid, warped_moving = registration(config, device, moving, fixed)
     runtime = time.time() - t
     print('Registration Running Time:', runtime)
     print('---Registration DONE---')
     evaluation(config, device, df, df_with_grid)
+
+    # Plot warped as a 2D image
+    warped_moving_np = warped_moving.detach().cpu().numpy()
+    Visuals.plot_image(warped_moving_np, 'Warped Moving Image')
+
+    df_with_grid_np = df_with_grid.cpu().numpy()
+    # Plot the 2D deformation field
+    plt.figure(dpi=600)
+    Visuals.plot_grid(df_with_grid_np[0, :, :, 0], df_with_grid_np[0, :, :, 1])
+    plt.show()
+
+    # Plot the jacobian determinants of the deformation field
+    jdet = Loss.JacboianDet(df_with_grid)
+    Visuals.plot_image(jdet.cpu().numpy()[0, :, :], "Jacobian Determinant")
+
+    # Only keep negative jacobian determinants - do with pytorch
+    jdet_neg_elements = jdet.clamp(max=0).square()
+    Visuals.plot_image(jdet_neg_elements.cpu().numpy()[0, :, :], "Negative Jacobian Determinant")
+
     print('---Evaluation DONE---')
     save_result(config, df, warped_moving, df_with_grid)
     print('---Results Saved---')
-    #save_result(config, df, warped_moving)
 
 
 '"registration defines the process of going through the neural network'
@@ -91,7 +116,7 @@ def registration(config, device, moving, fixed):
         # phi dphi/dx loss
         loss_df = config.lambda_df * smoothloss_loss(df)
         ' Regularisation term consists of above three terms'
-        ' To make table 4 simply remove it from the "loss" expression: '
+        ' To make table 4 simply remove loss_J from the "loss" expression: '
         #loss = loss_sim + loss_v + loss_df
         loss = loss_sim + loss_v + loss_J + loss_df
         optimizer.zero_grad()
@@ -131,21 +156,12 @@ def evaluation(config, device, df, df_with_grid):
     dice_move2fix = dice(warped_seg.unsqueeze(0).unsqueeze(0).detach().cpu().numpy(), fixed_seg, label)
     print('Avg. dice on %d structures: ' % len(label), np.mean(dice_move2fix[0]))
 
+
+
 'utensil for "main"'
 def save_result(config, df, warped_moving, df_with_grid):
     save_nii(df.permute(2,3,0,1).detach().cpu().numpy(), '%s/df.nii.gz' % (config.savepath)) #'was: permute(2,3,4,0,1)
     save_nii(warped_moving.detach().cpu().numpy(), '%s/warped.nii.gz' % (config.savepath))
-    'psi: deformation field applied to grid'
-    save_nii(df_with_grid.detach().cpu().numpy(), '%s/df_grid.nii.gz' % (config.savepath))
-    'Dpsi: jacobian determinants of deformation field'
-    Jdet_df_withgrid = JacboianDet(df_with_grid)
-    save_nii(Jdet_df_withgrid.detach().cpu().numpy(), '%s/Jdet_df_withgrid.nii.gz' % (config.savepath))
-    Jdet_df = JacboianDet(df)
-    save_nii(Jdet_df.detach().cpu().numpy(), '%s/Jdet_df.nii.gz' % (config.savepath))
-    'neg det: regions with negative jacobian determinants'
-    neg_Jet = -1.0 * JacboianDet(df_with_grid)
-    neg_Jet = F.relu(neg_Jet)
-    save_nii(neg_Jet.detach().cpu().numpy(), '%s/neg_Jet.nii.gz' % (config.savepath))
 
 'configuration: the definition of what to use'
 if __name__ == '__main__':

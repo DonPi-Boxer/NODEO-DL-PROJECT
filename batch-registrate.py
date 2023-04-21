@@ -9,10 +9,10 @@ import numpy as np
 #get and store all file paths for the MRI images and the segmentations in arrays
 
 def main(config):
-    moving_data_dir = './oasis-data/moving'
+    moving_data_dir = 'oasis-data/moving'
     #moving_data_labels = np.arange(1,49,1)
 
-    fixed_data_dir = './oasis-data/fixed'
+    fixed_data_dir = 'oasis-data/fixed'
     #fixed_data_labels = [10,20,30,40,50]
 
     moving_set_name_arr = []
@@ -25,9 +25,10 @@ def main(config):
         for mriname in [f for f in filenames if f.endswith("norm.nii.gz")]:
             moving_set_name_arr.append(os.path.basename(os.path.normpath(dirpath)))
             moving_file_paths_mri.append(os.path.join(dirpath,mriname))
+            print(moving_file_paths_mri)
         for segname in [f for f in filenames if f.endswith("seg35.nii.gz")]:    
             moving_file_paths_seg.append(os.path.join(dirpath,segname))
-    
+            print(moving_file_paths_seg)
     for dirpath, dirnames, filenames in os.walk(fixed_data_dir):
         for filename in [f for f in filenames if f.endswith("norm.nii.gz")]:
             fixed_set_name_arr.append(os.path.basename(os.path.normpath(dirpath))) 

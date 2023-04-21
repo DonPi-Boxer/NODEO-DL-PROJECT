@@ -43,10 +43,12 @@ def main(config):
     for moving_set_name,moving_mri,moving_seg in zip(moving_set_name_arr,moving_file_paths_mri,moving_file_paths_seg):
         for fixed_set_name,fixed_mri,fixed_seg in zip(fixed_set_name_arr,fixed_files_paths_mri,fixed_file_paths_seg):
             if moving_mri != fixed_mri:
+                print("in loop")
                 numruns = numruns +1
                 savedir = './result/' + moving_set_name +'/' + fixed_set_name
                 print(savedir)
                 if not os.path.isdir(savedir):
+                    ("in makedir")
                     os.makedirs(savedir)
                 avg_dice, runtime_run, mean_neg_j_run, ratio_neg_j_run = Registration.main(config = config, moving_mri = moving_mri, fixed_mri = fixed_mri,savedir=savedir, fixed_seg_in = fixed_seg, moving_seg_in=moving_seg)
                 runtime.append(runtime_run)

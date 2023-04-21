@@ -12,7 +12,6 @@ def main(config, moving_mri, fixed_mri, savedir, fixed_seg_in, moving_seg_in):
     fixed = load_nii(fixed_mri)
     ##CHANGED BY NJ
     moving = load_nii(moving_mri)
-    print("in registration")
     assert fixed.shape == moving.shape  # two images to be registered must in the same size
     t = time.time()
     df, df_with_grid, warped_moving = registration(config, device, moving, fixed)

@@ -201,9 +201,9 @@ if __name__ == '__main__':
                         dest="debug", default=False,
                         help="debug mode")
     #Device run on GPU
-    #parser.add_argument("--device", type=str,
-    #                    dest="device", default='cuda:0',
-    #                    help="gpu: cuda:0; cpu: cpu")
+    parser.add_argument("--device", type=str,
+                        dest="device", default='cuda:0',
+                        help="gpu: cuda:0; cpu: cpu")
     
     # Device run on CPU    
     parser.add_argument("--device", type=str,

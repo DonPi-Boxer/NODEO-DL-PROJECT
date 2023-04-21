@@ -129,7 +129,7 @@ if __name__ == '__main__':
                         dest="lr", default=0.005,
                         help="Learning rate.")
     parser.add_argument("--lambda_J", type=int,
-                        dest="lambda_J", default=2.5,
+                        dest="lambda_J", default=2.0,
                         help="Loss weight for neg J")
     parser.add_argument("--lambda_df", type=int,
                         dest="lambda_df", default=0.05,

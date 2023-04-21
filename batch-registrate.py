@@ -153,8 +153,8 @@ if __name__ == '__main__':
                         help="gpu: cuda:0; cpu: cpu")
     
     # Device run on CPU    
-    parser.add_argument("--device", type=str,
-                        dest="device", default='cpu')
+    #parser.add_argument("--device", type=str,
+    #                    dest="device", default='cpu')
     config = parser.parse_args()
     
 main(config)

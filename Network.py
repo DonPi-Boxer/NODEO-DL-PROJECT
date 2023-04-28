@@ -119,7 +119,7 @@ class BrainNet(ODEF):
         #BUG IS HERE. Value was 864, hard coded this to 1152 to match matrix dimensions
         #why did this work tho ?
         #self.lin1 = nn.Linear(864, self.bs, bias=bias)
-        self.lin1 = nn.Linear(1152, self.bs, bias=bias)
+        self.lin1 = nn.Linear(int(img_sz[0] * img_sz[1] / 32), self.bs, bias=bias) 
         
         self.lin2 = nn.Linear(self.bs, self.bottleneck_sz * 3, bias=bias)
         self.relu = nn.ReLU()

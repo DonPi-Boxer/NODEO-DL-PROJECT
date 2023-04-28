@@ -144,7 +144,8 @@ class BrainNet(ODEF):
         x = self.relu(self.enc_conv4(x))
         x = self.relu(self.enc_conv5(x))
         x = self.enc_conv6(x)
-        x = x.view(-1)        
+        x = x.view(-1) 
+        print(x.shape)       
         x = self.relu(self.lin1(x))
         x = self.lin2(x)
 

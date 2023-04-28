@@ -120,7 +120,7 @@ class BrainNet(ODEF):
         #why did this work tho ?
         #self.lin1 = nn.Linear(864, self.bs, bias=bias)
         print(img_sz)
-        self.lin1 = nn.Linear(int(round(int(img_sz[0]/32)) * round(int(img_sz[1]/32)) *round(int(img_sz[2]/32)) * 32), self.bs, bias=bias) 
+        self.lin1 = nn.Linear(int(round(int(img_sz[0]/64)) * round(int(img_sz[1]/64)) *round(int(img_sz[2]/64)) * 32), self.bs, bias=bias) 
         self.lin2 = nn.Linear(self.bs, self.bottleneck_sz * 3, bias=bias)
         self.relu = nn.ReLU()
 
